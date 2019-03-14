@@ -40,7 +40,7 @@ class Element(object):
                 content = " ".join([str(tag) for tag in self.content]) + " "
             return ONE_LINE_TAG_FORMAT.format(opening_tag=self._opening_tag, content=content, closing_tag=self._closing_tag)
         elif self.content:
-            tab_lines = lambda element: "\t" + (LB + "\t").join(str(element).split(LB))
+            tab_lines = lambda el: "\t" + (LB + "\t").join(str(el).split(LB))
             content = LB + LB.join([tab_lines(element) for element in self.content])
         return TAG_FORMAT.format(opening_tag=self._opening_tag, content=content, lb=LB, closing_tag=self._closing_tag)
 
@@ -110,9 +110,10 @@ class Attributes(object):
         if attributes:
             attributes = attributes.lstrip()
             attribute_search = re.search("(?P<attribute>\w*)\=\"(?P<value>.*?)\"", attributes)
-            group_dict = attribute_search.groupdict()
-            self.attribute_dict[group_dict["attribute"]] = group_dict["value"]
-            self.append(attributes[attribute_search.end():])
+            if attribute_search:
+                group_dict = attribute_search.groupdict()
+                self.attribute_dict[group_dict["attribute"]] = group_dict["value"]
+                self.append(attributes[attribute_search.end():])
 
     def __str__(self):
         if self.attribute_dict:

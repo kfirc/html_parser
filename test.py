@@ -28,8 +28,8 @@ def create_file_test(path=FULL_PATH):
     print(html_file)
 
 def main():
-    create_file_test()
-    parser = parse_file(r"https://www.google.com/")
+    #create_file_test()
+    parser = parse_file(r"https://www.tripadvisor.com/Restaurant_Review-g293984-d10027760-Reviews-OCD_Restaurant-Tel_Aviv_Tel_Aviv_District.html")
     print(parser.html_file)
 
 

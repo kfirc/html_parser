@@ -6,7 +6,6 @@ import Element
 
 LB = "\n"
 
-
 class HTMLParser(object):
     def __init__(self, path):
         self.html_file = HTMLFile(path)
@@ -19,7 +18,7 @@ class HTMLParser(object):
 
     def _create_content(self, text):
         pos, content = 0, []
-        while pos is not None:
+        while pos != -1:
             text = text[pos:]
             next_element, pos = self._next_element(text)
             if next_element: content.append(next_element)
@@ -27,28 +26,27 @@ class HTMLParser(object):
 
     def _next_element(self, text):
         opening_tag_match = re.match(Regex.OPENING_TAG_P, text)
-
         if opening_tag_match:
             # this is a start of an opening tag
             element_dict = opening_tag_match.groupdict()
             if Element.is_empty(element_dict["tag"]):
                 return self._parse_empty_element_match(opening_tag_match)
-            else:
-                return self._parse_opening_tag_match(opening_tag_match, text)
-        else:
-            empty_element_match = re.match(Regex.EMPTY_ELEMENT_P, text)
-            if empty_element_match: # this is a start of an empty element
-                return self._parse_empty_element_match(empty_element_match)
-            else:
-                comment_match = re.match(Regex.COMMENT_P, text)
-                if comment_match: # this is a start of a comment
-                    return self._parse_comment_match(comment_match)
-                else: # this is a start of a text
-                    return self._parse_text(text)
+            return self._parse_opening_tag_match(opening_tag_match, text)
+
+        empty_element_match = re.match(Regex.EMPTY_ELEMENT_P, text)
+        if empty_element_match: # this is a start of an empty element
+            return self._parse_empty_element_match(empty_element_match)
+
+        comment_match = re.match(Regex.COMMENT_P, text)
+        if comment_match: # this is a start of a comment
+            return self._parse_comment_match(comment_match)
+
+        # this is a start of a text
+        return self._parse_text(text)
 
     def _parse_text(self, text):
         end_pos = self._next_end_pos(text)
-        return text[:end_pos].replace(LB, '').replace('\t', ''), end_pos
+        return ' '.join(text[:end_pos].split()), end_pos
 
     @staticmethod
     def _parse_comment_match(comment_match):
@@ -95,9 +93,7 @@ class HTMLParser(object):
 
     @staticmethod
     def _next_end_pos(text):
-        end_pos = text.find("<", 1)
-        if end_pos == -1: return None
-        return end_pos
+        return text.find("<", 1)
 
 
 class HTMLFile(object):
