@@ -7,9 +7,9 @@ import Element
 LB = "\n"
 
 
-class HTML_Parser(object):
+class HTMLParser(object):
     def __init__(self, path):
-        self.html_file = HTML_File(path)
+        self.html_file = HTMLFile(path)
         self.parse()
 
     def parse(self):
@@ -50,24 +50,23 @@ class HTML_Parser(object):
         end_pos = self._next_end_pos(text)
         return text[:end_pos].replace(LB, '').replace('\t', ''), end_pos
 
-    def _parse_comment_match(self, comment_match):
+    @staticmethod
+    def _parse_comment_match(comment_match):
         comment_dict = comment_match.groupdict()
         end_pos = comment_match.end()
         return Element.Comment(comment_dict["comment"]), end_pos
 
-    def _parse_empty_element_match(self, empty_element_match):
+    @staticmethod
+    def _parse_empty_element_match(empty_element_match):
         element_dict = empty_element_match.groupdict()
-
         if Element.is_empty(element_dict["tag"]):
             end_pos = empty_element_match.end()
             empty_element = Element.EmptyElement(element_dict["tag"], element_dict["attributes"])
             return empty_element, end_pos
-        else:
-            # invalid empty tag
-            raise Exceptions.NonVoidSelfClosingTagError
+        # invalid empty tag
+        raise Exceptions.NonVoidSelfClosingTagError
 
     def _parse_opening_tag_match(self, opening_tag_match, text):
-
         tag_closed_count = 1
         end_pos = opening_tag_match.end()
         tag_dict = opening_tag_match.groupdict()
@@ -94,13 +93,14 @@ class HTML_Parser(object):
         element = Element.Element(tag, content, attributes)
         return element, end_pos
 
-    def _next_end_pos(self, text):
+    @staticmethod
+    def _next_end_pos(text):
         end_pos = text.find("<", 1)
         if end_pos == -1: return None
         return end_pos
 
 
-class HTML_File(object):
+class HTMLFile(object):
     def __init__(self, path, content=[]):
         self.path = path
 
@@ -142,7 +142,7 @@ class HTML_File(object):
 
 
 def create_file(path, content=["<!DOCTYPE html>", Element.Element("html")]):
-    return HTML_File(path, content)
+    return HTMLFile(path, content)
 
 
 def main():

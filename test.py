@@ -7,7 +7,7 @@ FULL_PATH = "{dir}{file}.{format}".format(dir=DIR_PATH, file=FILE_NAME, format=F
 
 
 def parse_file(path=FULL_PATH):
-    parser = Parser.HTML_Parser(path)
+    parser = Parser.HTMLParser(path)
     return parser
 
 def create_file_test(path=FULL_PATH):
@@ -28,7 +28,7 @@ def create_file_test(path=FULL_PATH):
     print(html_file)
 
 def main():
-    #create_file_test()
+    create_file_test()
     parser = parse_file(r"https://www.google.com/")
     print(parser.html_file)
 

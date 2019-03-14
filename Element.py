@@ -15,9 +15,6 @@ EMPTY_ELEMENTS_LIST = ["area", "base", "br", "col", "embed", "hr", "img", "input
 
 class Element(object):
     def __init__(self, tag=None, content=[], attributes={}, one_line=False):
-        if isinstance(tag, Element):
-            element = tag
-            tag, content, attributes, one_line = element.tag, element.content, element.attributes, element.one_line
         self.tag = tag
         self.attributes = Attributes(attributes)
         self.one_line = one_line
@@ -27,7 +24,6 @@ class Element(object):
         elif type(content) != list:
             raise Exceptions.ContentError
         self.content = content
-
 
     @property
     def _opening_tag(self):
@@ -55,32 +51,32 @@ class Element(object):
         for example - if the key was 'p' the function retrieve all the 'p' elements from the parent (self) element.
         """
         element_filter = lambda element: type(element) in [Element, EmptyElement] and element.tag == key
-        element_list = filter(element_filter, self.content)
+        element_list = list(filter(element_filter, self.content))
 
         if len(element_list) == 0: return
         if len(element_list) == 1: return element_list[0]
         return element_list
 
 
-    def _add(self, to_add):
-        self.content = list(self.content + [to_add])
+    def _append(self, to_append):
+        self.content = list(self.content + [to_append])
 
 
     def add(self, tag=None, content=[], attributes={}, one_line=False, empty=False):
         if type(tag) in [Element, EmptyElement]:
             element = tag
         else:
-            element = create_element(tag, content, attributes, one_line, empty)
+            element = create(tag, content, attributes, one_line, empty)
 
-        self._add(element)
+        self._append(element)
 
 
     def add_text(self, text):
-        self._add(text)
+        self._append(text)
 
 
     def add_comment(self, comment):
-        self._add(Comment(comment))
+        self._append(Comment(comment))
 
 
 class EmptyElement(object):
@@ -102,36 +98,21 @@ class Comment(object):
 
 class Attributes(object):
     def __init__(self, attributes={}):
-        if type(attributes) == dict:
+        if isinstance(attributes, dict):
             self.attribute_dict = attributes
-
         elif isinstance(attributes, Attributes):
             self.attribute_dict = attributes.attribute_dict
+        elif isinstance(attributes, str):
+            self.attribute_dict = {}
+            self.append(attributes)
 
-        elif type(attributes) == str:
-            if not attributes:
-                self.attribute_dict = {}
-            else:
-                if attributes.startswith(" "):
-                    attributes = attributes[1:] #remove the leading space
-
-                self.attribute_dict = {}
-                attribute_search = re.search("(?P<attribute>\w*)\=\"(?P<value>.*?)\"", attributes)
-
-                while attributes and attribute_search:
-
-                    group_dict = attribute_search.groupdict()
-                    self.attribute_dict[group_dict["attribute"]] = group_dict["value"]
-                    attributes = attributes[attribute_search.end():]
-
-                    attribute_search = re.search("(?P<attribute>\w*)\=\"(?P<value>.*?)\"", attributes)
-
-
-                """
-                attributes = attributes.split(" ") # split the attributes by the " "
-                attributes = [item.split("=") for item in attributes] # split each attribute item to its attribute, value
-                self.attribute_dict = {attribute:value for attribute, value in attributes}
-                """
+    def append(self, attributes):
+        if attributes:
+            attributes = attributes.lstrip()
+            attribute_search = re.search("(?P<attribute>\w*)\=\"(?P<value>.*?)\"", attributes)
+            group_dict = attribute_search.groupdict()
+            self.attribute_dict[group_dict["attribute"]] = group_dict["value"]
+            self.append(attributes[attribute_search.end():])
 
     def __str__(self):
         if self.attribute_dict:
@@ -139,13 +120,12 @@ class Attributes(object):
         return ""
 
 
-def create_element(tag=None, content=[], attributes={}, one_line=False, empty=False):
+def create(tag=None, content=[], attributes={}, one_line=False, empty=False):
     if empty or is_empty(tag):
         if content:
             raise Exceptions.ContentError
         return EmptyElement(tag, attributes)
-    else:
-        return Element(tag, content, attributes, one_line)
+    return Element(tag, content, attributes, one_line)
 
 
 def is_empty(tag):
